@@ -66,8 +66,7 @@ const fetchData = async (city = 'all') => {
         if (!res.ok) throw new Error(data.message || 'Failed to fetch');
 
         allData = data;
-        renderTable(data);
-        renderMap(); // Pulls from global state
+        applyFilters(); 
         renderAqiTrendChart(data);
         renderPollutantChart(data);
         setStatus(`Showing ${data.length} records`, 'success');
@@ -269,12 +268,49 @@ const renderPollutantChart = (data) => {
     });
 };
 
-// ===== City Dropdown Handler =====
+// ===== Search & Filter Logic =====
+const applyFilters = () => {
+    const city = document.getElementById('citySelect').value;
+    const query = document.getElementById('searchInput').value.toLowerCase();
+
+    // Filter Air Data
+    const filteredAir = allData.filter(r => {
+        const matchesCity = city === 'all' || r.city === city;
+        const matchesQuery = !query || 
+                             (r.city?.toLowerCase().includes(query)) || 
+                             (r.station?.toLowerCase().includes(query));
+        return matchesCity && matchesQuery;
+    });
+    renderTable(filteredAir);
+
+    // Filter Water Data
+    const filteredWater = allWaterData.filter(r => {
+        const matchesCity = city === 'all' || r.City === city;
+        const matchesQuery = !query || 
+                             (r.City?.toLowerCase().includes(query)) || 
+                             (r.Station?.toLowerCase().includes(query));
+        return matchesCity && matchesQuery;
+    });
+    renderWaterTable(filteredWater);
+
+    // Filter Noise Data
+    const filteredNoise = allNoiseData.filter(r => {
+        const matchesCity = city === 'all' || r.City === city;
+        const matchesQuery = !query || 
+                             (r.City?.toLowerCase().includes(query)) || 
+                             (r.Station?.toLowerCase().includes(query));
+        return matchesCity && matchesQuery;
+    });
+    renderNoiseTable(filteredNoise);
+};
+
 document.getElementById('citySelect').addEventListener('change', (e) => {
     fetchData(e.target.value);
     fetchWaterData(e.target.value);
     fetchNoiseData(e.target.value);
 });
+
+document.getElementById('searchInput').addEventListener('input', applyFilters);
 
 // waterChart is now declared globally at the top.
 
@@ -284,7 +320,7 @@ const fetchWaterData = async (city = 'all') => {
         const res = await fetch(url);
         const data = await res.json();
         allWaterData = data;
-        renderWaterTable(data);
+        applyFilters();
         renderWaterChart(data);
         renderMap();
     } catch (err) {
@@ -368,7 +404,7 @@ const fetchNoiseData = async (city = 'all') => {
         const res = await fetch(url);
         const data = await res.json();
         allNoiseData = data;
-        renderNoiseTable(data);
+        applyFilters();
         renderNoiseChart(data);
         renderMap();
     } catch (err) {
