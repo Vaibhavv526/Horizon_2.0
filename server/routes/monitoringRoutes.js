@@ -2,44 +2,40 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// @route   GET /api/data
-// @desc    Fetch all monitoring data
+// @route   GET /api/cities
+// @desc    Return all monitoring data for the 4 Chhattisgarh cities
 router.get('/', (req, res) => {
-    db.all("SELECT * FROM monitoring_data ORDER BY timestamp DESC", [], (err, rows) => {
+    db.all("SELECT * FROM monitoring_data ORDER BY city, date DESC", [], (err, rows) => {
         if (err) {
-            return res.status(500).json({ message: 'Server Error fetching data', error: err.message });
+            return res.status(500).json({ message: 'Database error', error: err.message });
         }
         res.status(200).json(rows);
     });
 });
 
-// @route   POST /api/data
-// @desc    Add new monitoring data
-router.post('/', (req, res) => {
-    try {
-        const { location, pollutantType, value } = req.body;
+// @route   GET /api/cities/:city
+// @desc    Return monitoring data for a specific city (case-insensitive)
+router.get('/:city', (req, res) => {
+    const cityName = req.params.city.trim();
 
-        if (!location || !pollutantType || !value) {
-            return res.status(400).json({ message: 'Please provide all required fields' });
-        }
+    // Title-case the city name for matching
+    const titleCased = cityName.replace(/\w\S*/g, (txt) =>
+        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
 
-        const stmt = db.prepare("INSERT INTO monitoring_data (location, pollutantType, value) VALUES (?, ?, ?)");
-        stmt.run([location, pollutantType, value], function(err) {
+    db.all(
+        "SELECT * FROM monitoring_data WHERE city = ? ORDER BY date DESC",
+        [titleCased],
+        (err, rows) => {
             if (err) {
-                return res.status(500).json({ message: 'Server Error adding data', error: err.message });
+                return res.status(500).json({ message: 'Database error', error: err.message });
             }
-            res.status(201).json({
-                id: this.lastID,
-                location,
-                pollutantType,
-                value,
-                timestamp: new Date()
-            });
-        });
-        stmt.finalize();
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
-    }
+            if (rows.length === 0) {
+                return res.status(404).json({ message: `No data found for city: ${cityName}` });
+            }
+            res.status(200).json(rows);
+        }
+    );
 });
 
 module.exports = router;

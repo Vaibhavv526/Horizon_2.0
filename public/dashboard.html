@@ -3,90 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Environmental Monitoring Dashboard</title>
+    <title>Chhattisgarh Environmental Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <h1>Environmental Monitoring Dashboard</h1>
-                <div>
+                <h1>🌿 Chhattisgarh Environmental Monitor</h1>
+                <div id="authButtons">
                     <a href="login.html" style="background: transparent; border: 1px solid #3b82f6; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: #3b82f6; font-weight: 600; margin-right: 0.5rem;">Login</a>
-                    <a href="register.html" style="background: #3b82f6; border: 1px solid #3b82f6; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600;">Register User</a>
+                    <a href="register.html" style="background: #3b82f6; border: 1px solid #3b82f6; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: white; font-weight: 600;">Register</a>
                 </div>
             </div>
-            <p class="subtitle">Real-time tracking of environmental data</p>
+            <p class="subtitle">Real-time pollution tracking for Raipur · Bilaspur · Bhilai · Baloda Bazar</p>
         </header>
 
-        <main class="dashboard">
-            <section class="form-section">
-                <div class="card">
-                    <h2>Submit Data</h2>
-                    <form id="dataForm">
-                        <div class="form-group">
-                            <label for="location">Location</label>
-                            <input type="text" id="location" placeholder="e.g., Downtown Park" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="pollutantType">Pollutant Type</label>
-                            <select id="pollutantType" required>
-                                <option value="" disabled selected>Select an option</option>
-                                <option value="Air Quality (AQI)">Air Quality (AQI)</option>
-                                <option value="Water Quality (pH)">Water Quality (pH)</option>
-                                <option value="Noise Level (dB)">Noise Level (dB)</option>
-                                <option value="PM 2.5">PM 2.5</option>
-                                <option value="CO2 Level">CO2 Level</option>
-                            </select>
-                        </div>
+        <!-- City Filter -->
+        <section class="controls-bar">
+            <div class="filter-group">
+                <label for="citySelect">Select City:</label>
+                <select id="citySelect">
+                    <option value="all" selected>All Cities</option>
+                    <option value="Raipur">Raipur</option>
+                    <option value="Bilaspur">Bilaspur</option>
+                    <option value="Bhilai">Bhilai</option>
+                    <option value="Baloda Bazar">Baloda Bazar</option>
+                </select>
+            </div>
+            <div id="statusMessage" class="status-pill">Loading data...</div>
+        </section>
 
-                        <div class="form-group">
-                            <label for="value">Value</label>
-                            <input type="number" step="0.01" id="value" placeholder="e.g., 45.5" required>
-                        </div>
+        <!-- Map Section -->
+        <section class="card map-card">
+            <h2>Monitoring Map</h2>
+            <div id="map"></div>
+        </section>
 
-                        <button type="submit" class="btn-submit">Submit Data</button>
-                        <div id="formMessage" class="message"></div>
-                    </form>
-                </div>
-            </section>
+        <!-- Charts Row -->
+        <section class="charts-row">
+            <div class="card chart-card">
+                <h2>AQI Trend Over Time</h2>
+                <canvas id="aqiTrendChart"></canvas>
+            </div>
+            <div class="card chart-card">
+                <h2>Pollutant Comparison</h2>
+                <canvas id="pollutantChart"></canvas>
+            </div>
+        </section>
 
-            <section class="table-section">
-                <div class="card" style="margin-bottom: 2rem;">
-                    <h2>Interactive Map (OpenStreetMap)</h2>
-                    <div id="map" style="height: 300px; border-radius: 8px; z-index: 1;"></div>
-                </div>
-
-                <div class="card">
-                    <h2>Recent Monitoring Data</h2>
-                    <div class="table-container">
-                        <table id="dataTable">
-                            <thead>
-                                <tr>
-                                    <th>Location</th>
-                                    <th>Pollutant Type</th>
-                                    <th>Value</th>
-                                    <th>Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody">
-                                <!-- Data rows will be injected here via JavaScript -->
-                                <tr>
-                                    <td colspan="4" class="loading">Loading data...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-        </main>
+        <!-- Data Table -->
+        <section class="card">
+            <h2>Pollution Data Records</h2>
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>City</th>
+                            <th>Date</th>
+                            <th>PM2.5</th>
+                            <th>PM10</th>
+                            <th>NO₂</th>
+                            <th>SO₂</th>
+                            <th>CO</th>
+                            <th>O₃</th>
+                            <th>AQI</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="10" class="loading">Loading data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="script.js"></script>
 </body>
 </html>
