@@ -276,8 +276,8 @@ const checkAuth = () => {
     try {
         const user = JSON.parse(userStr);
         authDiv.innerHTML = `
-            <span style="margin-right:1rem;font-weight:500">Welcome, <b>${user.username}</b></span>
-            <button onclick="logout()" style="background:transparent;border:1px solid #ef4444;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;color:#ef4444;font-weight:600">Logout</button>
+            <span style="font-size:0.85rem;font-weight:500;color:#1e293b">Welcome, <b>${user.username}</b></span>
+            <button onclick="logout()" class="nav-btn-outline" style="cursor:pointer;color:#ef4444;border-color:#ef4444">Logout</button>
         `;
     } catch (e) {
         logout();

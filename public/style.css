@@ -15,6 +15,88 @@
     --shadow-lg: 0 10px 25px rgba(0,0,0,0.08);
 }
 
+/* ========= TOP NAVBAR ========= */
+.top-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1.5rem;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.brand-icon { font-size: 1.4rem; }
+.brand-text { font-size: 1.15rem; font-weight: 700; color: var(--text-color); }
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.nav-links .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.nav-links .nav-link:hover { background: var(--bg-color); color: var(--text-color); }
+.nav-links .nav-link.active { background: #eff6ff; color: var(--primary-color); }
+.nav-links .nav-link svg { flex-shrink: 0; }
+
+.nav-auth {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-btn-outline {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+.nav-btn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+.nav-btn-solid {
+    padding: 0.4rem 1rem;
+    background: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    transition: background 0.2s;
+}
+.nav-btn-solid:hover { background: var(--primary-hover); }
+
 /* ========= GLOBAL RESET ========= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

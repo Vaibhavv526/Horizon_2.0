@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Capabilities - PrithviNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .capabilities-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .cap-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+        .cap-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .cap-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .cap-card-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+        }
+        .cap-card-header p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .cap-stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.85rem;
+        }
+        .cap-stat-row:last-child { border-bottom: none; }
+        .cap-stat-label { color: var(--text-muted); }
+        .cap-stat-value { font-weight: 600; color: var(--text-color); }
+        .cap-chart-container { height: 200px; margin-top: 0.75rem; }
+        .cap-chart-container canvas { width: 100% !important; height: 200px !important; }
+        .stations-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .station-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-color);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        .station-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+            flex-shrink: 0;
+        }
+        .station-dot.offline { background: var(--error-color); }
+        .validation-bar {
+            height: 8px;
+            background: var(--bg-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .validation-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+        @media (max-width: 768px) {
+            .capabilities-grid { grid-template-columns: 1fr; }
+            .stations-list { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="nav-inner">
+            <div class="nav-brand">
+                <span class="brand-icon">🌿</span>
+                <span class="brand-text">PrithviNet</span>
+            </div>
+            <div class="nav-links">
+                <a href="dashboard.html" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </a>
+                <a href="monitoring.html" class="nav-link active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Monitoring
+                </a>
+                <a href="dashboard.html#map" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                    Map
+                </a>
+                <a href="dashboard.html#dataTable" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Data
+                </a>
+            </div>
+            <div id="authButtons" class="nav-auth">
+                <a href="login.html" class="nav-btn-outline">Login</a>
+                <a href="register.html" class="nav-btn-solid">Register</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>📡 Monitoring Capabilities</h1>
+            <p class="subtitle">Comprehensive environmental parameter tracking across Chhattisgarh</p>
+        </header>
+
+        <!-- 6 Capability Cards -->
+        <div class="capabilities-grid">
+
+            <!-- 1. PM2.5 & PM10 Monitoring -->
+            <div class="cap-card">
+                <div class="cap-card-header">
+                    <div class="cap-icon" style="background:#fef2f2;color:#ef4444">🫁</div>
+                    <div>
+                        <h3>PM2.5 & PM10 Monitoring</h3>
+                        <p>Particulate matter tracking</p>
+                    </div>
+                </div>
+                <div id="pmStats"></div>
+                <div class="cap-chart-container">
+                    <canvas id="pmChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 2. Gaseous Pollution -->
+            <div class="cap-card">
+                <div class="cap-card-header">
+                    <div class="cap-icon" style="background:#f0fdf4;color:#16a34a">💨</div>
+                    <div>
+                        <h3>Gaseous Pollution</h3>
+                        <p>NO₂, SO₂, CO, O₃ levels</p>
+                    </div>
+                </div>
+                <div id="gasStats"></div>
+                <div class="cap-chart-container">
+                    <canvas id="gasChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. Water Quality Parameters -->
+            <div class="cap-card">
+                <div class="cap-card-header">
+                    <div class="cap-icon" style="background:#eff6ff;color:#3b82f6">💧</div>
+                    <div>
+                        <h3>Water Quality Parameters</h3>
+                        <p>pH, Dissolved Oxygen, BOD, Turbidity</p>
+                    </div>
+                </div>
+                <div class="cap-stat-row"><span class="cap-stat-label">pH Level (Avg)</span><span class="cap-stat-value">7.4</span></div>
+                <div class="cap-stat-row"><span class="cap-stat-label">Dissolved Oxygen</span><span class="cap-stat-value">6.8 mg/L</span></div>
+                <div class="cap-stat-row"><span class="cap-stat-label">BOD</span><span class="cap-stat-value">3.2 mg/L</span></div>
+                <div class="cap-stat-row"><span class="cap-stat-label">Turbidity</span><span class="cap-stat-value">12.5 NTU</span></div>
+                <div class="cap-stat-row"><span class="cap-stat-label">Status</span><span class="cap-stat-value" style="color:#16a34a">✅ Within Limits</span></div>
+            </div>
+
+            <!-- 4. Noise Level Monitoring -->
+            <div class="cap-card">
+                <div class="cap-card-header">
+                    <div class="cap-icon" style="background:#fefce8;color:#ca8a04">🔊</div>
+                    <div>
+                        <h3>Noise Level Monitoring</h3>
+                        <p>Ambient noise across zones</p>
+                    </div>
+                </div>
+                <div class="cap-stat-row"><span class="cap-stat-label">Raipur (Industrial)</span><span class="cap-stat-value">72.5 dB</span></div>
+                <div class="cap-stat-row"><span class="cap-stat-label">Bilaspur (Commercial)</span><span class="cap-stat-value">65.2 dB</span></div>
+                <div class="cap-stat-row"><span class="cap-stat-label">Bhilai (Industrial)</span><span class="cap-stat-value">78.8 dB</span></div>
+                <div class="cap-stat-row"><span class="cap-stat-label">Baloda Bazar (Residential)</span><span class="cap-stat-value">48.3 dB</span></div>
+                <div class="cap-stat-row"><span class="cap-stat-label">CPCB Limit (Industrial)</span><span class="cap-stat-value">75 dB</span></div>
+            </div>
+
+            <!-- 5. Real-time Stations -->
+            <div class="cap-card">
+                <div class="cap-card-header">
+                    <div class="cap-icon" style="background:#f0f9ff;color:#0ea5e9">📍</div>
+                    <div>
+                        <h3>Real-time Stations</h3>
+                        <p>Active monitoring station status</p>
+                    </div>
+                </div>
+                <div class="stations-list">
+                    <div class="station-item"><span class="station-dot"></span><b>Raipur CAAQMS</b> – Online</div>
+                    <div class="station-item"><span class="station-dot"></span><b>Bilaspur CAAQMS</b> – Online</div>
+                    <div class="station-item"><span class="station-dot"></span><b>Bhilai CAAQMS</b> – Online</div>
+                    <div class="station-item"><span class="station-dot"></span><b>Baloda Bazar</b> – Online</div>
+                    <div class="station-item"><span class="station-dot"></span><b>Raipur Manual</b> – Online</div>
+                    <div class="station-item"><span class="station-dot offline"></span><b>Korba CAAQMS</b> – Offline</div>
+                </div>
+                <div style="margin-top:1rem;font-size:0.8rem;color:var(--text-muted)">5 of 6 stations online · Last sync: 2 min ago</div>
+            </div>
+
+            <!-- 6. Data Validation -->
+            <div class="cap-card">
+                <div class="cap-card-header">
+                    <div class="cap-icon" style="background:#faf5ff;color:#9333ea">✅</div>
+                    <div>
+                        <h3>Data Validation</h3>
+                        <p>Quality assurance metrics</p>
+                    </div>
+                </div>
+                <div class="cap-stat-row">
+                    <span class="cap-stat-label">Records Processed</span>
+                    <span class="cap-stat-value" id="totalRecords">–</span>
+                </div>
+                <div class="cap-stat-row">
+                    <span class="cap-stat-label">Valid Records</span>
+                    <span class="cap-stat-value" style="color:#16a34a" id="validRecords">–</span>
+                </div>
+                <div class="cap-stat-row">
+                    <span class="cap-stat-label">Completeness</span>
+                    <span class="cap-stat-value" id="completeness">–</span>
+                </div>
+                <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-muted)">Validation Score</div>
+                <div class="validation-bar">
+                    <div class="validation-fill" id="validationFill" style="width:0%;background:var(--success-color)"></div>
+                </div>
+                <div class="cap-stat-row" style="margin-top:0.5rem">
+                    <span class="cap-stat-label">Null City Names Removed</span>
+                    <span class="cap-stat-value">2</span>
+                </div>
+                <div class="cap-stat-row">
+                    <span class="cap-stat-label">Case Normalization Applied</span>
+                    <span class="cap-stat-value">5 rows</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===== Auth =====
+    const checkAuth = () => {
+        const userStr = localStorage.getItem('envUser');
+        const authDiv = document.getElementById('authButtons');
+        if (!userStr) { window.location.href = 'index.html'; return; }
+        try {
+            const user = JSON.parse(userStr);
+            authDiv.innerHTML = `
+                <span style="font-size:0.85rem;font-weight:500;color:#1e293b">Welcome, <b>${user.username}</b></span>
+                <button onclick="logout()" class="nav-btn-outline" style="cursor:pointer;color:#ef4444;border-color:#ef4444">Logout</button>
+            `;
+        } catch(e) { logout(); }
+    };
+    window.logout = () => { localStorage.removeItem('envUser'); window.location.href = 'index.html'; };
+
+    // ===== Fetch city data & render charts =====
+    const loadData = async () => {
+        try {
+            const res = await fetch('/api/cities');
+            const data = await res.json();
+
+            // --- PM2.5 & PM10 stats ---
+            const cities = [...new Set(data.map(r => r.city))];
+            let pmHtml = '';
+            cities.forEach(city => {
+                const rows = data.filter(r => r.city === city);
+                const avgPm25 = (rows.reduce((s,r) => s + (r.pm25||0), 0) / rows.length).toFixed(1);
+                const avgPm10 = (rows.reduce((s,r) => s + (r.pm10||0), 0) / rows.length).toFixed(1);
+                pmHtml += `<div class="cap-stat-row"><span class="cap-stat-label">${city}</span><span class="cap-stat-value">PM2.5: ${avgPm25} · PM10: ${avgPm10}</span></div>`;
+            });
+            document.getElementById('pmStats').innerHTML = pmHtml;
+
+            // --- PM Chart ---
+            const pmCtx = document.getElementById('pmChart').getContext('2d');
+            const cityColors = { 'Raipur':'#ef4444', 'Bilaspur':'#3b82f6', 'Bhilai':'#f59e0b', 'Baloda Bazar':'#10b981' };
+            new Chart(pmCtx, {
+                type: 'bar',
+                data: {
+                    labels: cities,
+                    datasets: [
+                        {
+                            label: 'Avg PM2.5',
+                            data: cities.map(c => {
+                                const rows = data.filter(r => r.city === c);
+                                return +(rows.reduce((s,r) => s + (r.pm25||0), 0) / rows.length).toFixed(1);
+                            }),
+                            backgroundColor: cities.map(c => (cityColors[c] || '#6b7280') + '99'),
+                            borderColor: cities.map(c => cityColors[c] || '#6b7280'),
+                            borderWidth: 1, borderRadius: 4
+                        },
+                        {
+                            label: 'Avg PM10',
+                            data: cities.map(c => {
+                                const rows = data.filter(r => r.city === c);
+                                return +(rows.reduce((s,r) => s + (r.pm10||0), 0) / rows.length).toFixed(1);
+                            }),
+                            backgroundColor: cities.map(c => (cityColors[c] || '#6b7280') + '44'),
+                            borderColor: cities.map(c => cityColors[c] || '#6b7280'),
+                            borderWidth: 1, borderRadius: 4
+                        }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color:'#f1f5f9' } }, x: { grid: { display: false } } }, plugins: { legend: { labels: { usePointStyle: true } } } }
+            });
+
+            // --- Gaseous stats ---
+            let gasHtml = '';
+            const gases = [
+                { key:'no2', label:'NO₂' }, { key:'so2', label:'SO₂' },
+                { key:'co', label:'CO' }, { key:'o3', label:'O₃' }
+            ];
+            gases.forEach(g => {
+                const avg = (data.reduce((s,r) => s + (r[g.key]||0), 0) / data.length).toFixed(1);
+                gasHtml += `<div class="cap-stat-row"><span class="cap-stat-label">${g.label} (Avg across cities)</span><span class="cap-stat-value">${avg}</span></div>`;
+            });
+            document.getElementById('gasStats').innerHTML = gasHtml;
+
+            // --- Gas Chart ---
+            const gasCtx = document.getElementById('gasChart').getContext('2d');
+            new Chart(gasCtx, {
+                type: 'radar',
+                data: {
+                    labels: gases.map(g => g.label),
+                    datasets: cities.map(c => ({
+                        label: c,
+                        data: gases.map(g => {
+                            const rows = data.filter(r => r.city === c);
+                            return +(rows.reduce((s,r) => s + (r[g.key]||0), 0) / rows.length).toFixed(1);
+                        }),
+                        borderColor: cityColors[c] || '#6b7280',
+                        backgroundColor: (cityColors[c] || '#6b7280') + '22',
+                        pointBackgroundColor: cityColors[c] || '#6b7280',
+                        borderWidth: 2
+                    }))
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { r: { beginAtZero: true } }, plugins: { legend: { position:'bottom', labels: { usePointStyle: true } } } }
+            });
+
+            // --- Data Validation stats ---
+            const total = data.length;
+            const valid = data.filter(r => r.pm25 !== null && r.aqi !== null).length;
+            const pct = ((valid / total) * 100).toFixed(1);
+            document.getElementById('totalRecords').textContent = total;
+            document.getElementById('validRecords').textContent = valid;
+            document.getElementById('completeness').textContent = pct + '%';
+            document.getElementById('validationFill').style.width = pct + '%';
+
+        } catch (err) {
+            console.error('Error loading data:', err);
+        }
+    };
+
+    // ===== Init =====
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!localStorage.getItem('envUser')) { window.location.href = 'index.html'; return; }
+        checkAuth();
+        loadData();
+    });
+    </script>
+</body>
+</html>
