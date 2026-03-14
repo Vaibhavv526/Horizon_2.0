@@ -134,6 +134,16 @@
     border-radius: 50%;
 }
 
+.pulse-alert {
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
 /* ========= GLOBAL RESET ========= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

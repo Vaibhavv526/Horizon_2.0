@@ -12,6 +12,7 @@ let mapMarkers = [];
 let allData = []; // Air Quality
 let allWaterData = [];
 let allNoiseData = [];
+let mostPollutedCity = null;
 
 // ===== Chart.js Instances =====
 let aqiTrendChart = null;
@@ -38,12 +39,16 @@ const getAqiBadge = (aqi, bucket) => {
     return `<span class="aqi-badge ${cls}">${bucket || aqi}</span>`;
 };
 
-const getMarkerColor = (aqi) => {
-    if (aqi > 200) return '#991b1b';
-    if (aqi > 150) return '#ef4444';
-    if (aqi > 100) return '#f59e0b';
-    if (aqi > 50) return '#eab308';
-    return '#10b981';
+const getMarkerColor = (aqi, cityName) => {
+    // ONLY show the most polluted area in red
+    if (mostPollutedCity && cityName === mostPollutedCity) return '#ef4444'; 
+    
+    // Others use a softer neutral or scaled color palette (no red)
+    if (aqi > 200) return '#92400e'; // Deep Amber
+    if (aqi > 150) return '#f59e0b'; // Amber
+    if (aqi > 100) return '#fbbf24'; // Yellow
+    if (aqi > 50) return '#60a5fa'; // Light Blue
+    return '#10b981'; // Green
 };
 
 // ===== Status Message =====
@@ -66,6 +71,7 @@ const fetchData = async (city = 'all') => {
         if (!res.ok) throw new Error(data.message || 'Failed to fetch');
 
         allData = data;
+        updateAlertSystem(); // Identify most polluted area
         applyFilters(); 
         renderAqiTrendChart(data);
         renderPollutantChart(data);
@@ -125,10 +131,15 @@ const renderMap = () => {
         if (!COORDS[cityName]) return;
 
         const aqi = air.aqi || 0;
-        const color = getMarkerColor(aqi);
+        const color = getMarkerColor(aqi, cityName);
 
         const marker = L.circleMarker(COORDS[cityName], {
-            radius: 12, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85
+            radius: cityName === mostPollutedCity ? 16 : 12, 
+            fillColor: color, 
+            color: cityName === mostPollutedCity ? '#ef4444' : '#fff', 
+            weight: cityName === mostPollutedCity ? 4 : 2, 
+            opacity: 1, 
+            fillOpacity: 0.85
         }).addTo(map);
 
         marker.bindPopup(`
@@ -521,6 +532,30 @@ const checkAuth = () => {
 window.logout = () => {
     localStorage.removeItem('envUser');
     window.location.href = 'index.html';
+};
+
+// ===== Alert System Logic =====
+const updateAlertSystem = () => {
+    if (!allData.length) return;
+
+    // Find city with maximum AQI
+    const maxAqiRecord = allData.reduce((prev, current) => (prev.aqi > current.aqi) ? prev : current);
+    mostPollutedCity = maxAqiRecord.city;
+
+    const alertDot = document.querySelector('.alert-dot');
+    const alertIcon = document.querySelector('.nav-alert');
+
+    if (maxAqiRecord.aqi > 100) {
+        alertDot.style.display = 'block';
+        alertIcon.classList.add('pulse-alert');
+    } else {
+        alertDot.style.display = 'none';
+        alertIcon.classList.remove('pulse-alert');
+    }
+
+    alertIcon.onclick = () => {
+        alert(`🚨 Critical Pollution Alert!\n\nMost Polluted Area: ${maxAqiRecord.city}\nAQI: ${maxAqiRecord.aqi} (${maxAqiRecord.aqi_bucket})\n\nRecommended Action: Immediate inspection and public advisory needed.`);
+    };
 };
 
 // ===== Init =====
