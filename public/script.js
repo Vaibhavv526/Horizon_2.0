@@ -25,7 +25,10 @@ const CITY_COLORS = {
     'Raipur':       { line: '#ef4444', bg: 'rgba(239,68,68,0.15)' },
     'Bilaspur':     { line: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
     'Bhilai':       { line: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
-    'Baloda Bazar': { line: '#10b981', bg: 'rgba(16,185,129,0.15)' }
+    'Baloda Bazar': { line: '#10b981', bg: 'rgba(16,185,129,0.15)' },
+    'Bhatapara':    { line: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
+    'Korba':        { line: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+    'Durg':         { line: '#ec4899', bg: 'rgba(236,72,153,0.15)' }
 };
 
 // ===== AQI Helpers =====
@@ -113,14 +116,17 @@ const renderMap = () => {
     mapMarkers = [];
 
     // Group by city to show latest reading per city
-    const cities = ['Raipur', 'Bilaspur', 'Bhilai', 'Baloda Bazar'];
+    const cities = ['Raipur', 'Bilaspur', 'Bhilai', 'Baloda Bazar', 'Bhatapara', 'Korba', 'Durg'];
     
     // Fixed coordinates
     const COORDS = {
         'Raipur': [21.2514, 81.6296],
         'Bilaspur': [22.0797, 82.1391],
         'Bhilai': [21.1938, 81.3509],
-        'Baloda Bazar': [21.6567, 82.1604]
+        'Baloda Bazar': [21.6567, 82.1604],
+        'Bhatapara': [21.7377, 81.9367],
+        'Korba': [22.3511, 82.6841],
+        'Durg': [21.1904, 81.2849]
     };
 
     cities.forEach(cityName => {
@@ -324,7 +330,7 @@ document.getElementById('citySelect').addEventListener('change', (e) => {
 document.getElementById('searchInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         const query = e.target.value.trim();
-        const cities = ['Raipur', 'Bilaspur', 'Bhilai', 'Baloda Bazar'];
+        const cities = ['Raipur', 'Bilaspur', 'Bhilai', 'Baloda Bazar', 'Bhatapara', 'Korba', 'Durg'];
         const matchedCity = cities.find(c => c.toLowerCase() === query.toLowerCase());
         
         if (matchedCity) {

@@ -95,7 +95,10 @@ const renderMap = (userLat, userLon) => {
         'Raipur': [21.2514, 81.6296],
         'Bilaspur': [22.0797, 82.1391],
         'Bhilai': [21.1938, 81.3509],
-        'Baloda Bazar': [21.6567, 82.1604]
+        'Baloda Bazar': [21.6567, 82.1604],
+        'Bhatapara': [21.7377, 81.9367],
+        'Korba': [22.3511, 82.6841],
+        'Durg': [21.1904, 81.2849]
     };
 
     cities.forEach(cityName => {
