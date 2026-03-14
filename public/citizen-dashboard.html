@@ -59,19 +59,15 @@
             <p class="subtitle">Complete environmental data for your region</p>
         </header>
 
-        <!-- City Filter & Search (Same as Operator) -->
-        <section class="controls-bar">
-            <div class="filter-group">
-                <label for="citySelect">Select City:</label>
-                <select id="citySelect">
-                    <option value="all" selected>All Cities</option>
-                    <option value="Raipur">Raipur</option>
-                    <option value="Bilaspur">Bilaspur</option>
-                    <option value="Bhilai">Bhilai</option>
-                    <option value="Baloda Bazar">Baloda Bazar</option>
-                </select>
-            </div>
-            <div id="statusMessage" class="status-pill">Loading data...</div>
+        <!-- Location Status Banner -->
+        <div class="location-banner" id="locationBanner">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span id="locationText">Detecting your location...</span>
+        </div>
+
+        <!-- Controls Bar (Status Only) -->
+        <section class="controls-bar" style="justify-content: flex-end;">
+            <div id="statusMessage" class="status-pill">Updating regional data...</div>
         </section>
 
         <!-- Unified Map -->
@@ -80,7 +76,7 @@
             <div id="map"></div>
         </section>
 
-        <!-- Charts Row -->
+        <!-- Air Quality Charts Row -->
         <section class="charts-row">
             <div class="card chart-card">
                 <h2>AQI Trend Over Time</h2>
@@ -89,23 +85,6 @@
             <div class="card chart-card">
                 <h2>Pollutant Comparison</h2>
                 <canvas id="pollutantChart"></canvas>
-            </div>
-        </section>
-
-        <!-- Air Quality Table -->
-        <section class="card">
-            <h2>Pollution Records</h2>
-            <div class="table-container">
-                <table id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>City</th><th>Date</th><th>PM2.5</th><th>PM10</th><th>NO₂</th><th>AQI</th><th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr><td colspan="7" class="loading">Loading records...</td></tr>
-                    </tbody>
-                </table>
             </div>
         </section>
 

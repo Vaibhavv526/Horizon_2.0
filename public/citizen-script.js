@@ -1,5 +1,5 @@
 // ===== Leaflet Map Setup =====
-const map = L.map('map').setView([21.5, 81.8], 8); // Centered on Chhattisgarh
+const map = L.map('map').setView([21.25, 81.63], 10); // Center on Raipur initially
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
@@ -54,51 +54,41 @@ const setStatus = (text, type = '') => {
 };
 
 // ===== Data Fetching =====
-const fetchData = async (city = 'all') => {
+const fetchData = async () => {
     try {
         setStatus('Fetching data...');
-        const url = city === 'all' ? '/api/cities' : `/api/cities/${encodeURIComponent(city)}`;
-        const res = await fetch(url);
-        const data = await res.json();
+        const [airRes, waterRes, noiseRes] = await Promise.all([
+            fetch('/api/cities'),
+            fetch('/api/cities/water'),
+            fetch('/api/cities/noise')
+        ]);
 
-        if (!res.ok) throw new Error(data.message || 'Failed to fetch');
+        allData = await airRes.json();
+        allWaterData = await waterRes.json();
+        allNoiseData = await noiseRes.json();
 
-        allData = data;
-        applyFilters(); 
-        renderAqiTrendChart(data);
-        renderPollutantChart(data);
-        setStatus(`Showing ${data.length} records`, 'success');
+        renderCharts();
+        renderMap();
+        setStatus(`Live Status Update: Complete`, 'success');
     } catch (err) {
         console.error('Fetch error:', err);
-        setStatus('Failed to load data', 'error');
+        setStatus('Failed to load local data', 'error');
     }
-};
-
-// ===== Table Rendering =====
-const renderTable = (data) => {
-    const tbody = document.getElementById('tableBody');
-    if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">No data available</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = data.map(r => `
-        <tr>
-            <td><b>${r.city}</b></td>
-            <td>${r.date}</td>
-            <td>${r.pm25 ?? '-'}</td>
-            <td>${r.pm10 ?? '-'}</td>
-            <td>${r.no2 ?? '-'}</td>
-            <td><b>${r.aqi}</b></td>
-            <td>${getAqiBadge(r.aqi, r.aqi_bucket)}</td>
-        </tr>
-    `).join('');
 };
 
 // ===== Map Rendering =====
-const renderMap = () => {
+const renderMap = (userLat, userLon) => {
     mapMarkers.forEach(m => map.removeLayer(m));
     mapMarkers = [];
+
+    // Add user marker if location detected
+    if (userLat && userLon) {
+        const userMarker = L.circleMarker([userLat, userLon], {
+            radius: 10, fillColor: '#3b82f6', color: '#fff', weight: 3, fillOpacity: 1
+        }).addTo(map);
+        userMarker.bindPopup('<b>📍 You are here</b>').openPopup();
+        map.setView([userLat, userLon], 11);
+    }
 
     const cities = ['Raipur', 'Bilaspur', 'Bhilai', 'Baloda Bazar'];
     const COORDS = {
@@ -110,8 +100,8 @@ const renderMap = () => {
 
     cities.forEach(cityName => {
         const air = allData.find(d => d.city === cityName) || {};
-        const water = (allWaterData || []).find(d => d.City === cityName) || {};
-        const noise = (allNoiseData || []).find(d => d.City === cityName) || {};
+        const water = allWaterData.find(d => d.City === cityName) || {};
+        const noise = allNoiseData.find(d => d.City === cityName) || {};
 
         if (!COORDS[cityName]) return;
 
@@ -119,16 +109,16 @@ const renderMap = () => {
         const color = getMarkerColor(aqi);
 
         const marker = L.circleMarker(COORDS[cityName], {
-            radius: 12, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85
+            radius: 14, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85
         }).addTo(map);
 
         marker.bindPopup(`
             <div style="font-family:Inter,sans-serif;min-width:180px;padding:4px">
                 <h3 style="margin:0 0 8px;font-size:1rem;color:#1e293b">${cityName}</h3>
                 <div style="display:grid;gap:6px;font-size:0.85rem;color:#475569">
-                    <div>🌿 <b>AQI:</b> ${air.aqi || '--'}</div>
-                    <div>💧 <b>Water:</b> ${water.Status || 'N/A'}</div>
-                    <div>🔊 <b>Noise:</b> ${noise.Status || 'N/A'}</div>
+                    <div>🌿 <b>Air Status:</b> ${air.aqi_bucket || 'N/A'} (AQI: ${air.aqi || '--'})</div>
+                    <div>💧 <b>Water Status:</b> ${water.Status || 'N/A'}</div>
+                    <div>🔊 <b>Noise Status:</b> ${noise.Status || 'N/A'}</div>
                 </div>
             </div>
         `);
@@ -137,6 +127,13 @@ const renderMap = () => {
 };
 
 // ===== Charts =====
+const renderCharts = () => {
+    renderAqiTrendChart(allData);
+    renderPollutantChart(allData);
+    renderWaterChart(allWaterData);
+    renderNoiseChart(allNoiseData);
+};
+
 const renderAqiTrendChart = (data) => {
     const ctx = document.getElementById('aqiTrendChart').getContext('2d');
     if (aqiTrendChart) aqiTrendChart.destroy();
@@ -183,36 +180,6 @@ const renderPollutantChart = (data) => {
     });
 };
 
-// ===== Search & Filter Logic =====
-const applyFilters = () => {
-    const city = document.getElementById('citySelect').value;
-
-    const filterFunc = (item, cityProp) => {
-        return city === 'all' || item[cityProp] === city;
-    };
-
-    renderTable(allData.filter(r => filterFunc(r, 'city')));
-};
-
-document.getElementById('citySelect').addEventListener('change', (e) => {
-    fetchData(e.target.value);
-    fetchWaterData(e.target.value);
-    fetchNoiseData(e.target.value);
-});
-
-// ===== Water Data =====
-const fetchWaterData = async (city = 'all') => {
-    try {
-        const url = city === 'all' ? '/api/cities/water' : `/api/cities/water?city=${encodeURIComponent(city)}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        allWaterData = data;
-        applyFilters(); renderWaterChart(data); renderMap();
-    } catch (err) { console.error(err); }
-};
-
-// Water data rendering logic for tables removed for privacy reasons.
-
 const renderWaterChart = (data) => {
     const ctx = document.getElementById('waterChart').getContext('2d');
     if (waterChart) waterChart.destroy();
@@ -226,19 +193,6 @@ const renderWaterChart = (data) => {
     waterChart = new Chart(ctx, { type: 'bar', data: { labels: ['Avg pH'], datasets }, options: { responsive: true, maintainAspectRatio: false } });
 };
 
-// ===== Noise Data =====
-const fetchNoiseData = async (city = 'all') => {
-    try {
-        const url = city === 'all' ? '/api/cities/noise' : `/api/cities/noise?city=${encodeURIComponent(city)}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        allNoiseData = data;
-        applyFilters(); renderNoiseChart(data); renderMap();
-    } catch (err) { console.error(err); }
-};
-
-// Noise data rendering logic for tables removed for privacy reasons.
-
 const renderNoiseChart = (data) => {
     const ctx = document.getElementById('noiseChart').getContext('2d');
     if (noiseChart) noiseChart.destroy();
@@ -248,6 +202,34 @@ const renderNoiseChart = (data) => {
         { label: 'Night (dB)', data: cities.map(c => data.filter(r => r.City === c).reduce((a, b) => a + parseFloat(b.Leq_Night), 0) / data.filter(r => r.City === c).length), backgroundColor: '#3b82f699' }
     ];
     noiseChart = new Chart(ctx, { type: 'bar', data: { labels: cities, datasets }, options: { responsive: true, maintainAspectRatio: false } });
+};
+
+// ===== Geolocation Integration =====
+const initGeolocation = () => {
+    const locText = document.getElementById('locationText');
+    const locBanner = document.getElementById('locationBanner');
+
+    if (!navigator.geolocation) {
+        locText.textContent = 'Geolocation not supported. Showing regions with default view.';
+        locBanner.style.background = '#fef2f2'; locBanner.style.color = '#991b1b'; locBanner.style.borderColor = '#fecaca';
+        fetchData();
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const { latitude, longitude } = pos.coords;
+            locText.textContent = `Live location detected: ${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E. Showing environmental data for your region.`;
+            locBanner.style.background = '#f0fdf4'; locBanner.style.color = '#166534'; locBanner.style.borderColor = '#bbf7d0';
+            fetchData().then(() => renderMap(latitude, longitude));
+        },
+        (err) => {
+            locText.textContent = 'Location access denied. Access regional data using the map above.';
+            locBanner.style.background = '#fefce8'; locBanner.style.color = '#854d0e'; locBanner.style.borderColor = '#fde68a';
+            fetchData();
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
 };
 
 // ===== Citizen Auth =====
@@ -266,6 +248,8 @@ const checkCitizenAuth = () => {
 
 window.citizenLogout = () => { localStorage.removeItem('envCitizen'); window.location.href = 'index.html'; };
 
+// ===== Initialization =====
 document.addEventListener('DOMContentLoaded', () => {
-    checkCitizenAuth(); fetchData(); fetchWaterData(); fetchNoiseData();
+    checkCitizenAuth();
+    initGeolocation();
 });
