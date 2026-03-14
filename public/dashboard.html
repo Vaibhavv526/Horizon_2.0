@@ -111,6 +111,68 @@
                 </table>
             </div>
         </section>
+
+        <!-- Water Quality Section -->
+        <section class="card" style="margin-top:1.5rem">
+            <h2>💧 Water Quality Data</h2>
+            <div class="charts-row" style="margin-bottom:1rem">
+                <div class="card chart-card">
+                    <h2>Water Quality by City</h2>
+                    <canvas id="waterChart"></canvas>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="waterTable">
+                    <thead>
+                        <tr>
+                            <th>City</th>
+                            <th>Date</th>
+                            <th>Station</th>
+                            <th>pH</th>
+                            <th>DO (mg/L)</th>
+                            <th>BOD</th>
+                            <th>Turbidity</th>
+                            <th>TDS</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="waterTableBody">
+                        <tr><td colspan="9" class="loading">Loading water data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Noise Pollution Section -->
+        <section class="card" style="margin-top:1.5rem">
+            <h2>🔊 Noise Pollution Data</h2>
+            <div class="charts-row" style="margin-bottom:1rem">
+                <div class="card chart-card">
+                    <h2>Noise Levels by City & Zone</h2>
+                    <canvas id="noiseChart"></canvas>
+                </div>
+            </div>
+            <div class="table-container">
+                <table id="noiseTable">
+                    <thead>
+                        <tr>
+                            <th>City</th>
+                            <th>Date</th>
+                            <th>Station</th>
+                            <th>Zone</th>
+                            <th>Day (dB)</th>
+                            <th>Night (dB)</th>
+                            <th>Limit Day</th>
+                            <th>Limit Night</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="noiseTableBody">
+                        <tr><td colspan="9" class="loading">Loading noise data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <script src="script.js"></script>

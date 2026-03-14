@@ -1,0 +1,29 @@
+City,Date,Station,Zone_Type,Leq_Day,Leq_Night,Limit_Day,Limit_Night,Exceedance_Day,Exceedance_Night,Status
+Raipur,2024-01-15,Telibandha Crossing,Commercial,72.5,62.3,65,55,Yes,Yes,Exceeding
+Raipur,2024-01-16,Telibandha Crossing,Commercial,70.8,60.5,65,55,Yes,Yes,Exceeding
+Raipur,2024-02-10,Shankar Nagar,Residential,58.2,45.1,55,45,Yes,Yes,Marginal
+Raipur,2024-02-15,Urla Industrial Area,Industrial,78.5,68.2,75,70,Yes,No,Marginal
+Raipur,2024-03-05,Urla Industrial Area,Industrial,80.2,72.5,75,70,Yes,Yes,Exceeding
+Raipur,2024-03-20,Science College Zone,Silence,52.8,42.5,50,40,Yes,Yes,Exceeding
+Raipur,2024-04-10,Shankar Nagar,Residential,54.5,43.8,55,45,No,No,Within Limits
+Bilaspur,2024-01-15,Vyapar Vihar,Commercial,68.2,56.8,65,55,Yes,Yes,Exceeding
+Bilaspur,2024-01-16,Vyapar Vihar,Commercial,66.5,55.2,65,55,Yes,Yes,Marginal
+Bilaspur,2024-02-10,Sarkanda,Residential,52.1,42.5,55,45,No,No,Within Limits
+Bilaspur,2024-02-15,SECL Colony,Industrial,72.5,64.8,75,70,No,No,Within Limits
+Bilaspur,2024-03-05,SECL Colony,Industrial,74.8,68.5,75,70,No,No,Within Limits
+Bilaspur,2024-03-20,Hospital Road,Silence,48.5,38.2,50,40,No,No,Within Limits
+Bilaspur,2024-04-10,Sarkanda,Residential,53.8,44.2,55,45,No,No,Within Limits
+Bhilai,2024-01-15,BSP Gate No 1,Industrial,82.5,74.8,75,70,Yes,Yes,Exceeding
+Bhilai,2024-01-16,BSP Gate No 1,Industrial,80.8,72.5,75,70,Yes,Yes,Exceeding
+Bhilai,2024-02-10,Nehru Nagar,Residential,62.5,52.8,55,45,Yes,Yes,Exceeding
+Bhilai,2024-02-15,Sector 6 Market,Commercial,74.2,64.5,65,55,Yes,Yes,Exceeding
+Bhilai,2024-03-05,Sector 6 Market,Commercial,72.8,62.1,65,55,Yes,Yes,Exceeding
+Bhilai,2024-03-20,BSP Gate No 1,Industrial,84.5,76.2,75,70,Yes,Yes,Critical
+Bhilai,2024-04-10,Nehru Nagar,Residential,60.2,50.5,55,45,Yes,Yes,Exceeding
+Baloda Bazar,2024-01-15,Main Market,Commercial,62.5,50.2,65,55,No,No,Within Limits
+Baloda Bazar,2024-01-16,Main Market,Commercial,60.8,48.5,65,55,No,No,Within Limits
+Baloda Bazar,2024-02-10,Gandhi Chowk,Residential,48.2,38.5,55,45,No,No,Within Limits
+Baloda Bazar,2024-02-15,Rice Mill Area,Industrial,68.5,58.2,75,70,No,No,Within Limits
+Baloda Bazar,2024-03-05,Rice Mill Area,Industrial,70.2,60.5,75,70,No,No,Within Limits
+Baloda Bazar,2024-03-20,Gandhi Chowk,Residential,46.5,36.8,55,45,No,No,Within Limits
+Baloda Bazar,2024-04-10,Main Market,Commercial,58.2,46.5,65,55,No,No,Within Limits

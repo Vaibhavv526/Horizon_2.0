@@ -261,7 +261,180 @@ const renderPollutantChart = (data) => {
 // ===== City Dropdown Handler =====
 document.getElementById('citySelect').addEventListener('change', (e) => {
     fetchData(e.target.value);
+    fetchWaterData(e.target.value);
+    fetchNoiseData(e.target.value);
 });
+
+// ===== Water Quality =====
+let waterChart = null;
+
+const fetchWaterData = async (city = 'all') => {
+    try {
+        const url = city === 'all' ? '/api/cities/water' : `/api/cities/water?city=${encodeURIComponent(city)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        renderWaterTable(data);
+        renderWaterChart(data);
+    } catch (err) {
+        console.error('Water data error:', err);
+    }
+};
+
+const renderWaterTable = (data) => {
+    const tbody = document.getElementById('waterTableBody');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="loading">No water data</td></tr>';
+        return;
+    }
+    const statusColor = (s) => {
+        if (s === 'Good') return '#10b981';
+        if (s === 'Acceptable') return '#3b82f6';
+        if (s === 'Moderate') return '#f59e0b';
+        if (s === 'Poor') return '#ef4444';
+        if (s === 'Critical') return '#991b1b';
+        return '#64748b';
+    };
+    tbody.innerHTML = data.map(r => `
+        <tr>
+            <td><b>${r.City}</b></td>
+            <td>${r.Date}</td>
+            <td>${r.Station}</td>
+            <td>${r.pH}</td>
+            <td>${r.Dissolved_Oxygen}</td>
+            <td>${r.BOD}</td>
+            <td>${r.Turbidity}</td>
+            <td>${r.TDS}</td>
+            <td><span class="aqi-badge" style="background:${statusColor(r.Status)}20;color:${statusColor(r.Status)}">${r.Status}</span></td>
+        </tr>
+    `).join('');
+};
+
+const renderWaterChart = (data) => {
+    const ctx = document.getElementById('waterChart').getContext('2d');
+    if (waterChart) waterChart.destroy();
+
+    const cities = [...new Set(data.map(r => r.City))];
+    const params = ['pH', 'Dissolved_Oxygen', 'BOD', 'Turbidity'];
+    const paramLabels = ['pH', 'DO', 'BOD', 'Turbidity'];
+
+    const datasets = cities.map(city => {
+        const rows = data.filter(r => r.City === city);
+        const avgs = params.map(p => {
+            const vals = rows.map(r => parseFloat(r[p])).filter(v => !isNaN(v));
+            return vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : 0;
+        });
+        const colors = CITY_COLORS[city] || { line: '#6b7280' };
+        return {
+            label: city,
+            data: avgs,
+            backgroundColor: colors.line + '99',
+            borderColor: colors.line,
+            borderWidth: 1,
+            borderRadius: 4
+        };
+    });
+
+    waterChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: paramLabels, datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, title: { display: true, text: 'Avg Value' } }
+            },
+            plugins: { legend: { position: 'top', labels: { usePointStyle: true } } }
+        }
+    });
+};
+
+// ===== Noise Pollution =====
+let noiseChart = null;
+
+const fetchNoiseData = async (city = 'all') => {
+    try {
+        const url = city === 'all' ? '/api/cities/noise' : `/api/cities/noise?city=${encodeURIComponent(city)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        renderNoiseTable(data);
+        renderNoiseChart(data);
+    } catch (err) {
+        console.error('Noise data error:', err);
+    }
+};
+
+const renderNoiseTable = (data) => {
+    const tbody = document.getElementById('noiseTableBody');
+    if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="loading">No noise data</td></tr>';
+        return;
+    }
+    const statusColor = (s) => {
+        if (s === 'Within Limits') return '#10b981';
+        if (s === 'Marginal') return '#f59e0b';
+        if (s === 'Exceeding') return '#ef4444';
+        if (s === 'Critical') return '#991b1b';
+        return '#64748b';
+    };
+    tbody.innerHTML = data.map(r => `
+        <tr>
+            <td><b>${r.City}</b></td>
+            <td>${r.Date}</td>
+            <td>${r.Station}</td>
+            <td>${r.Zone_Type}</td>
+            <td>${r.Leq_Day}</td>
+            <td>${r.Leq_Night}</td>
+            <td>${r.Limit_Day}</td>
+            <td>${r.Limit_Night}</td>
+            <td><span class="aqi-badge" style="background:${statusColor(r.Status)}20;color:${statusColor(r.Status)}">${r.Status}</span></td>
+        </tr>
+    `).join('');
+};
+
+const renderNoiseChart = (data) => {
+    const ctx = document.getElementById('noiseChart').getContext('2d');
+    if (noiseChart) noiseChart.destroy();
+
+    const cities = [...new Set(data.map(r => r.City))];
+
+    const datasets = [
+        {
+            label: 'Day Level (dB)',
+            data: cities.map(city => {
+                const rows = data.filter(r => r.City === city);
+                const vals = rows.map(r => parseFloat(r.Leq_Day)).filter(v => !isNaN(v));
+                return vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : 0;
+            }),
+            backgroundColor: '#f59e0b99',
+            borderColor: '#f59e0b',
+            borderWidth: 1, borderRadius: 4
+        },
+        {
+            label: 'Night Level (dB)',
+            data: cities.map(city => {
+                const rows = data.filter(r => r.City === city);
+                const vals = rows.map(r => parseFloat(r.Leq_Night)).filter(v => !isNaN(v));
+                return vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : 0;
+            }),
+            backgroundColor: '#3b82f699',
+            borderColor: '#3b82f6',
+            borderWidth: 1, borderRadius: 4
+        }
+    ];
+
+    noiseChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: cities, datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' }, title: { display: true, text: 'dB Level' } }
+            },
+            plugins: { legend: { position: 'top', labels: { usePointStyle: true } } }
+        }
+    });
+};
 
 // ===== Auth Check =====
 const checkAuth = () => {
@@ -297,4 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     checkAuth();
     fetchData();
+    fetchWaterData();
+    fetchNoiseData();
 });
+

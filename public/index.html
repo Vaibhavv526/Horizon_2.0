@@ -1,78 +1,583 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrithviNet - Environmental Monitoring</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>PrithviNet - Smart Environmental Monitoring Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
+        html { scroll-behavior: smooth; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #e8f4f8 0%, #d4eef8 30%, #c5e8d3 70%, #a8d8a8 100%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 2.5rem;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .nav-brand-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .nav-links a {
+            padding: 0.45rem 1rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #475569;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.06);
+        }
+
+        .nav-links a.active {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #475569;
+            transition: all 0.2s;
+        }
+
+        .nav-icon-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        /* ===== HERO ===== */
         .hero {
+            display: flex;
+            align-items: center;
+            min-height: calc(100vh - 60px);
+            padding: 3rem 2.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 3rem;
+        }
+
+        .hero-left {
+            flex: 1;
+            max-width: 480px;
+        }
+
+        .hero-left h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.1;
+            margin-bottom: 0.75rem;
+        }
+
+        .hero-left h2 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #334155;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .hero-left p {
+            font-size: 1rem;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-operator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #3b82f6;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-operator:hover {
+            background: #2563eb;
+        }
+
+        .btn-citizen {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #fff;
+            color: #3b82f6;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: 1.5px solid #93c5fd;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .btn-citizen:hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+
+        .reg-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-reg {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #475569;
+            font-weight: 500;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.7);
+            transition: all 0.2s;
+        }
+
+        .btn-reg:hover {
+            background: #fff;
+            border-color: #94a3b8;
+        }
+
+        /* ===== MAP ILLUSTRATION (RIGHT) ===== */
+        .hero-right {
+            flex: 1;
+            position: relative;
+            min-height: 420px;
+        }
+
+        .map-bg {
+            width: 100%;
+            height: 420px;
+            background: linear-gradient(145deg, rgba(219, 234, 254, 0.6) 0%, rgba(186, 230, 253, 0.4) 50%, rgba(167, 243, 208, 0.3) 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* Subtle map grid */
+        .map-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Map region shapes */
+        .map-region {
+            position: absolute;
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 40% 60% 50% 50% / 60% 40% 60% 40%;
+        }
+
+        .region-1 {
+            width: 280px;
+            height: 250px;
+            top: 60px;
+            left: 80px;
+        }
+
+        .region-2 {
+            width: 180px;
+            height: 150px;
+            top: 120px;
+            left: 200px;
+            background: rgba(16, 185, 129, 0.06);
+            border-color: rgba(16, 185, 129, 0.15);
+            border-radius: 50% 40% 60% 50% / 40% 60% 40% 60%;
+        }
+
+        /* City pins */
+        .city-pin {
+            position: absolute;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 80vh;
-            text-align: center;
+            gap: 4px;
+            z-index: 5;
         }
-        .hero h1 {
-            font-size: 3.5rem;
-            color: var(--primary-color);
-            margin-bottom: 1.5rem;
-        }
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 650px;
-            margin-bottom: 3rem;
-        }
-        .hero-buttons {
+
+        .pin-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
             display: flex;
-            gap: 1.5rem;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
         }
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            text-decoration: none;
+
+        .pin-icon span {
+            transform: rotate(45deg);
+            font-size: 1rem;
+        }
+
+        .pin-label {
+            font-size: 0.75rem;
             font-weight: 600;
-            font-size: 1.1rem;
-            transition: background-color 0.3s ease;
+            color: #334155;
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 2px 8px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
+
+        .pin-raipur {
+            top: 60px;
+            right: 80px;
         }
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--primary-color);
-            border: 2px solid var(--primary-color);
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
+
+        .pin-raipur .pin-icon {
+            background: linear-gradient(135deg, #06b6d4, #0ea5e9);
         }
-        .btn-secondary:hover {
-            background-color: var(--primary-color);
-            color: white;
+
+        .pin-bilaspur {
+            top: 150px;
+            left: 45%;
+        }
+
+        .pin-bilaspur .pin-icon {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+        }
+
+        .pin-bhilai {
+            top: 140px;
+            right: 30px;
+        }
+
+        .pin-bhilai .pin-icon {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+
+        .pin-baloda {
+            top: 270px;
+            left: 35%;
+        }
+
+        .pin-baloda .pin-icon {
+            background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+        }
+
+        /* Connecting dots */
+        .connect-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #94a3b8;
+            opacity: 0.4;
+        }
+
+        /* ===== TREES (BOTTOM) ===== */
+        .trees-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(0deg, rgba(34, 139, 34, 0.15) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .tree {
+            position: fixed;
+            bottom: 0;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                padding: 2rem 1.5rem;
+            }
+
+            .hero-left {
+                max-width: 100%;
+                text-align: center;
+            }
+
+            .hero-left h1 {
+                font-size: 2rem;
+            }
+
+            .hero-buttons,
+            .reg-buttons {
+                justify-content: center;
+            }
+
+            .hero-right {
+                width: 100%;
+                min-height: 300px;
+            }
+
+            .map-bg {
+                height: 300px;
+            }
+
+            .navbar {
+                padding: 0.75rem 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="container hero">
-        <h1>PrithviNet</h1>
-        <p>Smart environmental monitoring platform for Chhattisgarh. Real-time air quality, water health, and noise pollution tracking across cities and industries.</p>
-        
-        <div class="hero-buttons">
-            <a href="login.html" class="btn-primary">Operator Login →</a>
-            <a href="citizen-login.html" class="btn-secondary">Citizen Portal 👤</a>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="nav-logo">🌿</div>
+            <span class="nav-brand-text">PrithviNet</span>
         </div>
-        <div style="margin-top:1.5rem;display:flex;gap:2rem;font-size:0.85rem;color:var(--text-muted)">
-            <a href="register.html" style="color:var(--text-muted);text-decoration:none">Operator Registration</a>
-            <a href="citizen-register.html" style="color:var(--text-muted);text-decoration:none">Citizen Registration</a>
+        <div class="nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="#reports">Reports</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
         </div>
-    </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Left: Content -->
+        <div class="hero-left">
+            <h1>PrithviNet</h1>
+            <h2>Smart Environmental Monitoring Platform for Chhattisgarh.</h2>
+            <p>Real-time monitoring of air quality, Water health, and noise pollution across industries and cities.</p>
+
+            <div class="hero-buttons">
+                <a href="login.html" class="btn-operator">
+                    Operator Login →
+                </a>
+                <a href="citizen-login.html" class="btn-citizen">
+                    Citizen Portal 👤
+                </a>
+            </div>
+
+            <div class="reg-buttons">
+                <a href="register.html" class="btn-reg">🛠️ Operator Registration</a>
+                <a href="citizen-register.html" class="btn-reg">👤 Citizen Registration</a>
+            </div>
+        </div>
+
+        <!-- Right: Leaflet Map -->
+        <div class="hero-right">
+            <div id="heroMap" style="width:100%;height:420px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,0.1);z-index:2;"></div>
+        </div>
+    </section>
+
+    <!-- Reports Section -->
+    <section id="reports" style="max-width:1200px;margin:0 auto;padding:3rem 2.5rem">
+        <h2 style="font-size:1.75rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem">📊 Reports & Monitoring</h2>
+        <p style="color:#64748b;margin-bottom:2rem">Key environmental capabilities tracked across Chhattisgarh</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem">
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">🫁</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.3rem">PM2.5 & PM10</h3>
+                <p style="font-size:0.82rem;color:#64748b;line-height:1.5">Continuous particulate matter tracking across all four cities with hourly readings.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">💨</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.3rem">Gaseous Pollution</h3>
+                <p style="font-size:0.82rem;color:#64748b;line-height:1.5">NO₂, SO₂, CO, O₃ monitoring with CPCB standard compliance checks.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">💧</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.3rem">Water Quality</h3>
+                <p style="font-size:0.82rem;color:#64748b;line-height:1.5">pH, dissolved oxygen, BOD, and turbidity parameters for water bodies.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">🔊</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.3rem">Noise Monitoring</h3>
+                <p style="font-size:0.82rem;color:#64748b;line-height:1.5">Ambient noise levels in residential, commercial, and industrial zones.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">📍</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.3rem">Real-time Stations</h3>
+                <p style="font-size:0.82rem;color:#64748b;line-height:1.5">6 CAAQMS stations across Chhattisgarh with live status monitoring.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">✅</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.3rem">Data Validation</h3>
+                <p style="font-size:0.82rem;color:#64748b;line-height:1.5">Automated cleaning, null removal, and case normalization for 98%+ data quality.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" style="max-width:1200px;margin:0 auto;padding:3rem 2.5rem">
+        <h2 style="font-size:1.75rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem">ℹ️ About PrithviNet</h2>
+        <p style="color:#64748b;margin-bottom:2rem">Smart Environmental Monitoring Platform for Chhattisgarh</p>
+        <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:2rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+            <h3 style="font-size:1.1rem;font-weight:600;margin-bottom:1rem">🎯 Our Mission</h3>
+            <p style="font-size:0.95rem;color:#475569;line-height:1.8;margin-bottom:1.25rem">PrithviNet is a smart environmental monitoring platform built to safeguard Chhattisgarh's air, water, and acoustic environment. We provide real-time intelligence across four key cities — <b>Raipur</b>, <b>Bilaspur</b>, <b>Bhilai</b>, and <b>Baloda Bazar</b> — empowering both government operators and everyday citizens to make informed decisions about their environment.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+                <div style="padding:0.75rem;background:#f8fafc;border-radius:8px;font-size:0.85rem;color:#475569">🌬️ <b>Air Quality Tracking</b> — PM2.5, PM10, NO₂, SO₂, CO, O₃ with AQI classification</div>
+                <div style="padding:0.75rem;background:#f8fafc;border-radius:8px;font-size:0.85rem;color:#475569">💧 <b>Water Health Monitoring</b> — pH, dissolved oxygen, BOD, and turbidity analysis</div>
+                <div style="padding:0.75rem;background:#f8fafc;border-radius:8px;font-size:0.85rem;color:#475569">🔊 <b>Noise Pollution Mapping</b> — Zone-wise ambient noise tracking against CPCB standards</div>
+                <div style="padding:0.75rem;background:#f8fafc;border-radius:8px;font-size:0.85rem;color:#475569">📍 <b>Citizen Awareness</b> — Live location-based dashboards for neighbourhood monitoring</div>
+            </div>
+        </div>
+        <div style="margin-top:1.5rem;background:rgba(255,255,255,0.85);border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;justify-content:space-around;text-align:center">
+            <div><div style="font-size:1.5rem;font-weight:700;color:#3b82f6">4</div><div style="font-size:0.8rem;color:#64748b">Cities Monitored</div></div>
+            <div><div style="font-size:1.5rem;font-weight:700;color:#10b981">87+</div><div style="font-size:0.8rem;color:#64748b">Data Records</div></div>
+            <div><div style="font-size:1.5rem;font-weight:700;color:#f59e0b">6</div><div style="font-size:0.8rem;color:#64748b">Pollutant Types</div></div>
+            <div><div style="font-size:1.5rem;font-weight:700;color:#ef4444">98%</div><div style="font-size:0.8rem;color:#64748b">Data Quality</div></div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" style="max-width:1200px;margin:0 auto;padding:3rem 2.5rem">
+        <h2 style="font-size:1.75rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem">📞 Contact Us</h2>
+        <p style="color:#64748b;margin-bottom:2rem">Get in touch with the PrithviNet monitoring team</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.25rem">
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">📱</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.5rem">Toll-Free Number</h3>
+                <p style="font-size:1.1rem;font-weight:600;color:#3b82f6">1800-180-4104</p>
+                <p style="font-size:0.8rem;color:#64748b;margin-top:0.25rem">CPCB Helpline (24×7)</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">📧</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.5rem">Email</h3>
+                <p style="font-size:0.95rem;font-weight:500;color:#3b82f6">prithvinet@cgenv.gov.in</p>
+                <p style="font-size:0.8rem;color:#64748b;margin-top:0.25rem">Response within 24 hours</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.85);border-radius:12px;padding:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem">🏢</div>
+                <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:0.5rem">Office Address</h3>
+                <p style="font-size:0.85rem;color:#475569;line-height:1.5">Chhattisgarh Environment Conservation Board,<br>Sector 19, Atal Nagar, Raipur - 492015</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom gradient (trees feel) -->
+    <div class="trees-bar"></div>
+
 </body>
+<script>
+const map = L.map('heroMap', { zoomControl: false }).setView([21.6, 81.85], 8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18, attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+const cities = [
+    { name: 'Raipur', lat: 21.2514, lng: 81.6296, aqi: 152, icon: '🌡️', color: '#ef4444' },
+    { name: 'Bilaspur', lat: 22.0797, lng: 82.1391, aqi: 108, icon: '💨', color: '#3b82f6' },
+    { name: 'Bhilai', lat: 21.2094, lng: 81.3785, aqi: 148, icon: '🔬', color: '#f59e0b' },
+    { name: 'Baloda Bazar', lat: 21.6567, lng: 82.1604, aqi: 78, icon: '💧', color: '#10b981' }
+];
+
+cities.forEach(c => {
+    const marker = L.circleMarker([c.lat, c.lng], {
+        radius: 12, fillColor: c.color, color: '#fff', weight: 2.5, fillOpacity: 0.85
+    }).addTo(map);
+    marker.bindPopup(`<div style="font-family:Inter,sans-serif;text-align:center;min-width:120px"><b style="font-size:1rem">${c.icon} ${c.name}</b><br><span style="color:#64748b;font-size:0.85rem">AQI: <b style="color:${c.color}">${c.aqi}</b></span></div>`);
+    marker.bindTooltip(c.name, { permanent: true, direction: 'top', offset: [0, -14], className: 'city-tooltip' });
+});
+
+setTimeout(() => map.invalidateSize(), 300);
+</script>
+<style>.city-tooltip{background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:2px 8px;font-family:Inter,sans-serif;font-size:0.78rem;font-weight:600;color:#1e293b;box-shadow:0 2px 6px rgba(0,0,0,0.08)}</style>
 </html>

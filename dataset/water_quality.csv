@@ -1,0 +1,29 @@
+City,Date,Station,pH,Dissolved_Oxygen,BOD,COD,Turbidity,TDS,Fecal_Coliform,Status
+Raipur,2024-01-15,Kharun River - Telibandha,7.2,6.5,3.1,18.5,14.2,320,180,Acceptable
+Raipur,2024-01-16,Kharun River - Telibandha,7.0,6.2,3.4,19.8,15.1,335,210,Acceptable
+Raipur,2024-02-10,Kharun River - Telibandha,6.8,5.8,4.2,22.1,18.5,410,280,Moderate
+Raipur,2024-02-15,Maharajbandh Lake,7.5,7.1,2.5,14.2,8.3,280,120,Good
+Raipur,2024-03-05,Maharajbandh Lake,7.3,6.8,2.8,15.5,9.1,295,140,Good
+Raipur,2024-03-20,Kharun River - Telibandha,6.9,5.5,4.8,25.3,20.2,445,350,Poor
+Raipur,2024-04-10,Kharun River - Telibandha,7.1,6.0,3.8,21.0,16.8,380,240,Moderate
+Bilaspur,2024-01-15,Arpa River - City Center,7.4,7.0,2.2,12.5,10.1,250,90,Good
+Bilaspur,2024-01-16,Arpa River - City Center,7.3,6.8,2.5,13.8,11.5,265,110,Good
+Bilaspur,2024-02-10,Arpa River - City Center,7.1,6.5,3.0,16.2,13.2,310,150,Acceptable
+Bilaspur,2024-02-15,Koni Lake,7.6,7.5,1.8,10.5,6.5,220,60,Good
+Bilaspur,2024-03-05,Koni Lake,7.5,7.2,2.0,11.8,7.2,235,75,Good
+Bilaspur,2024-03-20,Arpa River - City Center,7.0,6.2,3.5,18.5,15.8,340,200,Moderate
+Bilaspur,2024-04-10,Arpa River - City Center,7.2,6.6,2.8,14.5,12.0,285,130,Acceptable
+Bhilai,2024-01-15,Sheonath River - BSP Stretch,6.5,4.8,6.2,35.5,22.5,520,450,Poor
+Bhilai,2024-01-16,Sheonath River - BSP Stretch,6.4,4.5,6.8,38.2,24.1,545,490,Poor
+Bhilai,2024-02-10,Sheonath River - BSP Stretch,6.6,5.0,5.8,32.1,20.8,490,380,Poor
+Bhilai,2024-02-15,Maroda Tank,7.0,6.0,3.5,18.0,14.5,350,180,Moderate
+Bhilai,2024-03-05,Maroda Tank,6.9,5.8,3.8,19.5,15.2,365,200,Moderate
+Bhilai,2024-03-20,Sheonath River - BSP Stretch,6.3,4.2,7.5,42.0,26.5,580,520,Critical
+Bhilai,2024-04-10,Sheonath River - BSP Stretch,6.5,4.6,6.5,36.8,23.2,530,460,Poor
+Baloda Bazar,2024-01-15,Mahanadi River - Sirpur,7.8,7.8,1.5,8.2,5.5,180,40,Good
+Baloda Bazar,2024-01-16,Mahanadi River - Sirpur,7.7,7.6,1.8,9.0,6.1,190,50,Good
+Baloda Bazar,2024-02-10,Mahanadi River - Sirpur,7.5,7.2,2.2,11.5,7.8,215,70,Good
+Baloda Bazar,2024-02-15,Village Pond - Bhatapara,7.2,6.5,3.0,15.0,12.0,300,160,Acceptable
+Baloda Bazar,2024-03-05,Village Pond - Bhatapara,7.0,6.2,3.5,17.2,13.5,325,190,Moderate
+Baloda Bazar,2024-03-20,Mahanadi River - Sirpur,7.6,7.4,2.0,10.2,6.8,200,55,Good
+Baloda Bazar,2024-04-10,Mahanadi River - Sirpur,7.7,7.5,1.6,8.8,5.8,185,45,Good
