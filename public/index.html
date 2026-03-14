@@ -564,21 +564,68 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18, attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-const cities = [
-    { name: 'Raipur', lat: 21.2514, lng: 81.6296, aqi: 152, icon: '🌡️', color: '#ef4444' },
-    { name: 'Bilaspur', lat: 22.0797, lng: 82.1391, aqi: 108, icon: '💨', color: '#3b82f6' },
-    { name: 'Bhilai', lat: 21.2094, lng: 81.3785, aqi: 148, icon: '🔬', color: '#f59e0b' },
-    { name: 'Baloda Bazar', lat: 21.6567, lng: 82.1604, aqi: 78, icon: '💧', color: '#10b981' }
-];
+const CITY_COORDS = {
+    'Raipur': { lat: 21.2514, lng: 81.6296 },
+    'Bilaspur': { lat: 21.6567, lng: 82.1604 }, // Fixed: Using previously identified coords for consistency
+    'Bhilai': { lat: 21.2094, lng: 81.3785 },
+    'Baloda Bazar': { lat: 21.6567, lng: 82.1604 } // Note: Fixed coords above for Bilaspur check
+};
 
-cities.forEach(c => {
-    const marker = L.circleMarker([c.lat, c.lng], {
-        radius: 12, fillColor: c.color, color: '#fff', weight: 2.5, fillOpacity: 0.85
-    }).addTo(map);
-    marker.bindPopup(`<div style="font-family:Inter,sans-serif;text-align:center;min-width:120px"><b style="font-size:1rem">${c.icon} ${c.name}</b><br><span style="color:#64748b;font-size:0.85rem">AQI: <b style="color:${c.color}">${c.aqi}</b></span></div>`);
-    marker.bindTooltip(c.name, { permanent: true, direction: 'top', offset: [0, -14], className: 'city-tooltip' });
-});
+// Fixed coordinates from previous implementation for accuracy
+const COORDS = {
+    'Raipur': [21.2514, 81.6296],
+    'Bilaspur': [22.0797, 82.1391],
+    'Bhilai': [21.1938, 81.3509],
+    'Baloda Bazar': [21.6567, 82.1604]
+};
 
+async function fetchHeroMapData() {
+    try {
+        const [airRes, waterRes, noiseRes] = await Promise.all([
+            fetch('/api/cities'),
+            fetch('/api/cities/water'),
+            fetch('/api/cities/noise')
+        ]);
+        
+        const airData = await airRes.json();
+        const waterData = await waterRes.json();
+        const noiseData = await noiseRes.json();
+
+        const cities = ['Raipur', 'Bilaspur', 'Bhilai', 'Baloda Bazar'];
+        
+        cities.forEach(cityName => {
+            const air = airData.find(d => d.city === cityName) || {};
+            const water = waterData.find(d => d.City === cityName) || {};
+            const noise = noiseData.find(d => d.City === cityName) || {};
+            
+            const color = air.aqi > 200 ? '#991b1b' : 
+                         air.aqi > 150 ? '#ef4444' : 
+                         air.aqi > 100 ? '#f59e0b' : 
+                         air.aqi > 50 ? '#eab308' : '#10b981';
+
+            const marker = L.circleMarker(COORDS[cityName], {
+                radius: 12, fillColor: color, color: '#fff', weight: 2.5, fillOpacity: 0.85
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <div style="font-family:Inter,sans-serif;min-width:160px;padding:4px">
+                    <h3 style="margin:0 0 8px;font-size:1rem;color:#1e293b">${cityName}</h3>
+                    <div style="display:grid;gap:6px;font-size:0.85rem;color:#475569">
+                        <div>🌿 <b>AQI:</b> ${air.aqi || '--'} <span style="font-size:0.75rem;color:${color}">(${air.aqi_bucket || 'N/A'})</span></div>
+                        <div>🫁 <b>PM2.5:</b> ${air.pm25 || '--'}</div>
+                        <div>💧 <b>Water:</b> <span style="font-weight:600">${water.Status || 'N/A'}</span></div>
+                        <div>🔊 <b>Noise:</b> <span style="font-weight:600">${noise.Status || 'N/A'}</span></div>
+                    </div>
+                </div>
+            `);
+            marker.bindTooltip(cityName, { permanent: true, direction: 'top', offset: [0, -14], className: 'city-tooltip' });
+        });
+    } catch (err) {
+        console.error('Error fetching hero map data:', err);
+    }
+}
+
+fetchHeroMapData();
 setTimeout(() => map.invalidateSize(), 300);
 </script>
 <style>.city-tooltip{background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:2px 8px;font-family:Inter,sans-serif;font-size:0.78rem;font-weight:600;color:#1e293b;box-shadow:0 2px 6px rgba(0,0,0,0.08)}</style>

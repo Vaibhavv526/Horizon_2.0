@@ -8,9 +8,16 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let mapMarkers = [];
 
+// ===== Global Data State =====
+let allData = []; // Air Quality
+let allWaterData = [];
+let allNoiseData = [];
+
 // ===== Chart.js Instances =====
 let aqiTrendChart = null;
 let pollutantChart = null;
+let waterChart = null;
+let noiseChart = null;
 
 // ===== Color Palette =====
 const CITY_COLORS = {
@@ -47,7 +54,7 @@ const setStatus = (text, type = '') => {
 };
 
 // ===== Data Fetching =====
-let allData = [];
+// Air quality data is now stored in global state above.
 
 const fetchData = async (city = 'all') => {
     try {
@@ -60,7 +67,7 @@ const fetchData = async (city = 'all') => {
 
         allData = data;
         renderTable(data);
-        renderMap(data);
+        renderMap(); // Pulls from global state
         renderAqiTrendChart(data);
         renderPollutantChart(data);
         setStatus(`Showing ${data.length} records`, 'success');
@@ -95,41 +102,45 @@ const renderTable = (data) => {
 };
 
 // ===== Map Rendering =====
-const renderMap = (data) => {
+const renderMap = () => {
     // Clear old markers
     mapMarkers.forEach(m => map.removeLayer(m));
     mapMarkers = [];
 
     // Group by city to show latest reading per city
-    const cityLatest = {};
-    data.forEach(r => {
-        if (r.latitude && r.longitude) {
-            if (!cityLatest[r.city] || r.date > cityLatest[r.city].date) {
-                cityLatest[r.city] = r;
-            }
-        }
-    });
+    const cities = ['Raipur', 'Bilaspur', 'Bhilai', 'Baloda Bazar'];
+    
+    // Fixed coordinates
+    const COORDS = {
+        'Raipur': [21.2514, 81.6296],
+        'Bilaspur': [22.0797, 82.1391],
+        'Bhilai': [21.1938, 81.3509],
+        'Baloda Bazar': [21.6567, 82.1604]
+    };
 
-    Object.values(cityLatest).forEach(r => {
-        const color = getMarkerColor(r.aqi);
-        const marker = L.circleMarker([r.latitude, r.longitude], {
-            radius: 12,
-            fillColor: color,
-            color: '#fff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.85
+    cities.forEach(cityName => {
+        const air = allData.find(d => d.city === cityName) || {};
+        const water = (allWaterData || []).find(d => d.City === cityName) || {};
+        const noise = (allNoiseData || []).find(d => d.City === cityName) || {};
+
+        if (!COORDS[cityName]) return;
+
+        const aqi = air.aqi || 0;
+        const color = getMarkerColor(aqi);
+
+        const marker = L.circleMarker(COORDS[cityName], {
+            radius: 12, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.85
         }).addTo(map);
 
         marker.bindPopup(`
-            <div style="font-family:Inter,sans-serif;min-width:180px">
-                <h3 style="margin:0 0 4px">${r.city}</h3>
-                <p style="margin:0;color:#64748b;font-size:0.85em">${r.date}</p>
-                <hr style="border:none;border-top:1px solid #e2e8f0;margin:6px 0">
-                <p style="margin:2px 0"><b>AQI:</b> ${r.aqi} (${r.aqi_bucket})</p>
-                <p style="margin:2px 0"><b>PM2.5:</b> ${r.pm25}</p>
-                <p style="margin:2px 0"><b>PM10:</b> ${r.pm10}</p>
-                <p style="margin:2px 0"><b>NO₂:</b> ${r.no2}</p>
+            <div style="font-family:Inter,sans-serif;min-width:180px;padding:4px">
+                <h3 style="margin:0 0 8px;font-size:1rem;color:#1e293b">${cityName}</h3>
+                <div style="display:grid;gap:6px;font-size:0.85rem;color:#475569">
+                    <div>🌿 <b>AQI:</b> ${air.aqi || '--'} <span style="font-size:0.75rem">(${air.aqi_bucket || 'N/A'})</span></div>
+                    <div>🫁 <b>PM2.5:</b> ${air.pm25 || '--'}</div>
+                    <div>💧 <b>Water:</b> <span style="font-weight:600">${water.Status || 'N/A'}</span></div>
+                    <div>🔊 <b>Noise:</b> <span style="font-weight:600">${noise.Status || 'N/A'}</span></div>
+                </div>
             </div>
         `);
 
@@ -265,16 +276,17 @@ document.getElementById('citySelect').addEventListener('change', (e) => {
     fetchNoiseData(e.target.value);
 });
 
-// ===== Water Quality =====
-let waterChart = null;
+// waterChart is now declared globally at the top.
 
 const fetchWaterData = async (city = 'all') => {
     try {
         const url = city === 'all' ? '/api/cities/water' : `/api/cities/water?city=${encodeURIComponent(city)}`;
         const res = await fetch(url);
         const data = await res.json();
+        allWaterData = data;
         renderWaterTable(data);
         renderWaterChart(data);
+        renderMap();
     } catch (err) {
         console.error('Water data error:', err);
     }
@@ -348,16 +360,17 @@ const renderWaterChart = (data) => {
     });
 };
 
-// ===== Noise Pollution =====
-let noiseChart = null;
+// noiseChart is now declared globally at the top.
 
 const fetchNoiseData = async (city = 'all') => {
     try {
         const url = city === 'all' ? '/api/cities/noise' : `/api/cities/noise?city=${encodeURIComponent(city)}`;
         const res = await fetch(url);
         const data = await res.json();
+        allNoiseData = data;
         renderNoiseTable(data);
         renderNoiseChart(data);
+        renderMap();
     } catch (err) {
         console.error('Noise data error:', err);
     }
