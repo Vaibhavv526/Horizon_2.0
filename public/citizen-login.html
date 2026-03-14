@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Login - PrithviNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>.auth-container { max-width: 400px; margin: 4rem auto; }</style>
+</head>
+<body>
+    <div class="container auth-container">
+        <header>
+            <h1>Citizen Login</h1>
+            <p class="subtitle">View your neighbourhood's environmental status</p>
+        </header>
+        <main>
+            <div class="card">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Login</button>
+                    <div id="loginMessage" class="message"></div>
+                </form>
+                <div style="text-align:center;margin-top:1.5rem;color:var(--text-muted);font-size:0.9em">
+                    Don't have an account? <a href="citizen-register.html" style="color:var(--primary-color);font-weight:500;text-decoration:none">Register as Citizen</a><br><br>
+                    <a href="login.html" style="color:var(--text-muted);text-decoration:none;font-size:0.85em">Login as Operator instead →</a>
+                </div>
+                <div style="text-align:center;margin-top:1rem">
+                    <a href="index.html" style="color:var(--primary-color);text-decoration:none;font-weight:500">&larr; Back to Home</a>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById('loginMessage');
+        const btn = document.querySelector('.btn-submit');
+        btn.disabled = true; btn.textContent = 'Authenticating...';
+        try {
+            const res = await fetch('/api/users/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            msg.textContent = 'Login successful! Redirecting...';
+            msg.className = 'message success';
+            data.role = 'citizen';
+            localStorage.setItem('envCitizen', JSON.stringify(data));
+            setTimeout(() => { window.location.href = 'citizen-dashboard.html'; }, 1500);
+        } catch (err) {
+            msg.textContent = err.message; msg.className = 'message error';
+        } finally { btn.disabled = false; btn.textContent = 'Login'; }
+    });
+    </script>
+</body>
+</html>

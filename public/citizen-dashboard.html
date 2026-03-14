@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Dashboard - PrithviNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .location-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #1e40af;
+        }
+        .location-banner svg { flex-shrink: 0; }
+        .nearest-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .nearest-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+        }
+        .nearest-card h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+        .nearest-card .distance { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+        .nearest-stat { display: flex; justify-content: space-between; padding: 0.35rem 0; font-size: 0.85rem; border-bottom: 1px solid var(--border-color); }
+        .nearest-stat:last-child { border-bottom: none; }
+        #citizenMap { height: 500px; border-radius: 8px; z-index: 1; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="top-navbar">
+        <div class="nav-inner">
+            <div class="nav-brand">
+                <span class="brand-icon">🌿</span>
+                <span class="brand-text">PrithviNet</span>
+            </div>
+            <div class="nav-links">
+                <a href="citizen-dashboard.html" class="nav-link active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    My Area
+                </a>
+            </div>
+            <div id="citizenAuth" class="nav-auth">
+                <a href="citizen-login.html" class="nav-btn-outline">Login</a>
+                <a href="citizen-register.html" class="nav-btn-solid">Register</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>🏘️ Your Neighbourhood Status</h1>
+            <p class="subtitle">Environmental data near your current location</p>
+        </header>
+
+        <!-- Location Banner -->
+        <div class="location-banner" id="locationBanner">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span id="locationText">Detecting your location...</span>
+        </div>
+
+        <!-- Nearest Station Cards -->
+        <div class="nearest-cards" id="nearestCards">
+            <!-- Dynamically filled -->
+        </div>
+
+        <!-- Interactive Map -->
+        <section class="card">
+            <h2>Neighbourhood Map</h2>
+            <div id="citizenMap"></div>
+        </section>
+    </div>
+
+    <script>
+    // ===== Auth Check =====
+    const checkCitizenAuth = () => {
+        const userStr = localStorage.getItem('envCitizen');
+        const authDiv = document.getElementById('citizenAuth');
+        if (!userStr) { window.location.href = 'index.html'; return; }
+        try {
+            const user = JSON.parse(userStr);
+            authDiv.innerHTML = `
+                <span style="font-size:0.85rem;font-weight:500;color:#1e293b">Hi, <b>${user.username}</b></span>
+                <button onclick="citizenLogout()" class="nav-btn-outline" style="cursor:pointer;color:#ef4444;border-color:#ef4444">Logout</button>
+            `;
+        } catch (e) { citizenLogout(); }
+    };
+    window.citizenLogout = () => { localStorage.removeItem('envCitizen'); window.location.href = 'index.html'; };
+
+    // ===== Map Setup =====
+    const map = L.map('citizenMap').setView([21.25, 81.63], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18, attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // ===== Haversine Distance =====
+    const getDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    const getMarkerColor = (aqi) => {
+        if (aqi > 200) return '#991b1b';
+        if (aqi > 150) return '#ef4444';
+        if (aqi > 100) return '#f59e0b';
+        if (aqi > 50) return '#eab308';
+        return '#10b981';
+    };
+
+    // ===== Main Logic =====
+    const loadCitizenDashboard = async (userLat, userLon) => {
+        // Show user location on map
+        map.setView([userLat, userLon], 10);
+
+        // User marker (blue pulsing)
+        const userMarker = L.circleMarker([userLat, userLon], {
+            radius: 10, fillColor: '#3b82f6', color: '#fff', weight: 3, fillOpacity: 1
+        }).addTo(map);
+        userMarker.bindPopup('<b>📍 You are here</b>').openPopup();
+
+        // Accuracy circle
+        L.circle([userLat, userLon], { radius: 2000, color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.08, weight: 1 }).addTo(map);
+
+        // Fetch station data
+        try {
+            const res = await fetch('/api/cities');
+            const data = await res.json();
+
+            // Get latest reading per city
+            const cityLatest = {};
+            data.forEach(r => {
+                if (r.latitude && r.longitude) {
+                    if (!cityLatest[r.city] || r.date > cityLatest[r.city].date) {
+                        cityLatest[r.city] = r;
+                    }
+                }
+            });
+
+            // Calculate distances & sort
+            const withDist = Object.values(cityLatest).map(r => ({
+                ...r,
+                distance: getDistance(userLat, userLon, r.latitude, r.longitude)
+            })).sort((a, b) => a.distance - b.distance);
+
+            // Render nearest station cards
+            const cardsEl = document.getElementById('nearestCards');
+            cardsEl.innerHTML = withDist.map(s => `
+                <div class="nearest-card">
+                    <h3>${s.city}</h3>
+                    <div class="distance">📏 ${s.distance.toFixed(1)} km away</div>
+                    <div class="nearest-stat"><span>AQI</span><b style="color:${getMarkerColor(s.aqi)}">${s.aqi} (${s.aqi_bucket})</b></div>
+                    <div class="nearest-stat"><span>PM2.5</span><b>${s.pm25}</b></div>
+                    <div class="nearest-stat"><span>PM10</span><b>${s.pm10}</b></div>
+                    <div class="nearest-stat"><span>NO₂</span><b>${s.no2}</b></div>
+                    <div class="nearest-stat"><span>Date</span><b>${s.date}</b></div>
+                </div>
+            `).join('');
+
+            // Plot station markers on map
+            withDist.forEach(s => {
+                const color = getMarkerColor(s.aqi);
+                const m = L.circleMarker([s.latitude, s.longitude], {
+                    radius: 12, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.85
+                }).addTo(map);
+                m.bindPopup(`
+                    <div style="font-family:Inter,sans-serif;min-width:160px">
+                        <h3 style="margin:0 0 4px">${s.city}</h3>
+                        <p style="margin:0;color:#64748b;font-size:0.8em">${s.distance.toFixed(1)} km from you</p>
+                        <hr style="border:none;border-top:1px solid #e2e8f0;margin:6px 0">
+                        <p style="margin:2px 0"><b>AQI:</b> ${s.aqi} (${s.aqi_bucket})</p>
+                        <p style="margin:2px 0"><b>PM2.5:</b> ${s.pm25}</p>
+                        <p style="margin:2px 0"><b>PM10:</b> ${s.pm10}</p>
+                    </div>
+                `);
+            });
+
+            // Draw lines from user to each station
+            withDist.forEach(s => {
+                L.polyline([[userLat, userLon], [s.latitude, s.longitude]], {
+                    color: '#94a3b8', weight: 1, dashArray: '5,8', opacity: 0.5
+                }).addTo(map);
+            });
+
+        } catch (err) {
+            console.error('Error loading data:', err);
+        }
+    };
+
+    // ===== Geolocation =====
+    const initLocation = () => {
+        const locText = document.getElementById('locationText');
+        const locBanner = document.getElementById('locationBanner');
+
+        if (!navigator.geolocation) {
+            locText.textContent = 'Geolocation not supported. Showing default location.';
+            locBanner.style.background = '#fef2f2'; locBanner.style.color = '#991b1b'; locBanner.style.borderColor = '#fecaca';
+            loadCitizenDashboard(21.2514, 81.6296); // Fallback: Raipur
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                locText.textContent = `Live location detected: ${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E`;
+                locBanner.style.background = '#f0fdf4'; locBanner.style.color = '#166534'; locBanner.style.borderColor = '#bbf7d0';
+                loadCitizenDashboard(latitude, longitude);
+            },
+            (err) => {
+                locText.textContent = 'Location access denied. Showing Raipur as default.';
+                locBanner.style.background = '#fefce8'; locBanner.style.color = '#854d0e'; locBanner.style.borderColor = '#fde68a';
+                loadCitizenDashboard(21.2514, 81.6296); // Fallback: Raipur
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    };
+
+    // ===== Init =====
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!localStorage.getItem('envCitizen')) { window.location.href = 'index.html'; return; }
+        checkCitizenAuth();
+        initLocation();
+    });
+    </script>
+</body>
+</html>
