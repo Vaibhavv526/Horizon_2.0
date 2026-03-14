@@ -310,6 +310,18 @@ document.getElementById('citySelect').addEventListener('change', (e) => {
     fetchNoiseData(e.target.value);
 });
 
+document.getElementById('searchInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        const query = e.target.value.trim();
+        const cities = ['Raipur', 'Bilaspur', 'Bhilai', 'Baloda Bazar'];
+        const matchedCity = cities.find(c => c.toLowerCase() === query.toLowerCase());
+        
+        if (matchedCity) {
+            window.location.href = `city-dashboard.html?city=${encodeURIComponent(matchedCity)}`;
+        }
+    }
+});
+
 document.getElementById('searchInput').addEventListener('input', applyFilters);
 
 // waterChart is now declared globally at the top.
